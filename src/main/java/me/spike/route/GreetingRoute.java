@@ -6,8 +6,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class GreetingRoute extends RouteBuilder {
 
+    @Override
     public void configure() {
-        from("jms:queue:hello").id("hello")
-                .to("jms:queue:hello-audit").id("hello-audit");
+        from("jms:queue:hello").routeId("hello")
+                .log("In here")
+                .to("jms:queue:hello-audit");
     }
 }

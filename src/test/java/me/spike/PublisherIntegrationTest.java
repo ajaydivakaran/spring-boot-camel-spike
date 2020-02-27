@@ -2,6 +2,7 @@ package me.spike;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.EndpointInject;
+import org.apache.camel.builder.AdviceWithRouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.model.ModelCamelContext;
 import org.apache.camel.test.junit4.CamelTestSupport;
@@ -25,7 +26,6 @@ import static org.junit.Assert.assertEquals;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @RunWith(CamelSpringBootRunner.class)
 @UseAdviceWith
-@MockEndpoints("jms:queue:hello")
 public class PublisherIntegrationTest {
 
     @LocalServerPort
@@ -37,15 +37,18 @@ public class PublisherIntegrationTest {
     @Autowired
     private CamelContext camelContext;
 
-    @EndpointInject("mock:jms:queue:hello")
+    @EndpointInject("mock:jms:queue:hello-audit")
     private MockEndpoint mockEndpoint;
 
     @Test
-    public void shouldPublishToAuditRoute() throws InterruptedException {
+    public void shouldPublishToAuditRoute() throws Exception {
         final String url = "http://localhost:" + port + "/hello";
         final Map<String, String> body = Collections.singletonMap("foo", "bar");
         mockEndpoint.expectedMessageCount(1);
         mockEndpoint.expectedBodiesReceived("{foo=bar}");
+        AdviceWithRouteBuilder.adviceWith(camelContext, "hello",
+                a -> a.mockEndpoints("jms:queue:hello-audit")
+        );
         camelContext.start();
 
         final ResponseEntity<Void> response = this.restTemplate.postForEntity(url, body, Void.class);
