@@ -8,8 +8,9 @@ public class GreetingRoute extends RouteBuilder {
 
     @Override
     public void configure() {
+
         from("jms:queue:hello").routeId("hello")
-                .log("In here")
-                .to("jms:queue:hello-audit");
+                .log("In first route")
+                .to("direct:destination");
     }
 }
